@@ -6,14 +6,16 @@
 
 (def vertical PlotOrientation/VERTICAL)
 
+(defn color [r g b] (Color. r g b))
+
 (defmulti set-theme type)
 
 (defmethod set-theme org.jfree.chart.plot.Plot
   [plot]
   (doto plot
     (.setBackgroundPaint Color/white)
-    (.setRangeGridlinePaint (Color. 200 100 200))
-    (.setDomainGridlinePaint (Color. 200 100 200))))
+    (.setRangeGridlinePaint (color 200 100 200))
+    (.setDomainGridlinePaint (color 200 100 200))))
 
 (defmethod set-theme org.jfree.chart.renderer.xy.XYBarRenderer
   [renderer]
@@ -26,10 +28,12 @@
 (defmethod set-theme org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
   [renderer]
   (let [point-size 4
-        c (- (/ point-size 2))]
-    (doto renderer
-      (.setPaint (Color. 0 40 87))
-      (.setSeriesShape 0 (java.awt.geom.Ellipse2D$Double. c c point-size point-size)))))
+        c (- (/ point-size 2))
+        colors [Color/gray Color/green Color/red Color/blue Color/magenta
+                Color/pink Color/cyan Color/orange Color/yellow]]
+    (doseq [i (range 9)]
+      (.setSeriesPaint renderer i (nth colors i))
+      (.setSeriesShape renderer i (java.awt.geom.Ellipse2D$Double. c c point-size point-size)))))
 
 (defmethod set-theme org.jfree.chart.JFreeChart
   [chart]

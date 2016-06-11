@@ -27,13 +27,17 @@
       chart)))
 
 (defn scatter-plot
-  [data & {:as opts}]
-  (let [title (or (:title opts) "Scatter Plot")
+  [& args]
+  (let [[data-groups [& {:as opts}]] (split-with (complement keyword?) args)
+        title (or (:title opts) "Scatter Plot")
         x-lab (or (:x-lab opts) "x")
         y-lab (or (:y-lab opts) "y")
+        data-labels (or (:data-labels opts) (map str (range (count data-groups))))
         dataset (DefaultXYDataset.)]
-    (.addSeries dataset "Series" (into-array [(double-array (map first data))
-                                              (double-array (map second data))]))
+    (doseq [i (range (count data-groups))]
+      (.addSeries dataset (nth data-labels i)
+                  (into-array [(double-array (map first (nth data-groups i)))
+                               (double-array (map second (nth data-groups i)))])))
     (let [chart (ChartFactory/createScatterPlot title x-lab y-lab
                                                 dataset)]
       (theme/set-theme chart)
