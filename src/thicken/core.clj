@@ -1,4 +1,5 @@
 (ns thicken.core
+  (:require [thicken.theme :as theme])
   (:import org.jfree.chart.ChartFrame
            org.jfree.chart.ChartUtilities
            org.jfree.chart.JFreeChart
@@ -7,24 +8,10 @@
            org.jfree.chart.plot.FastScatterPlot
            org.jfree.chart.plot.PlotOrientation
            org.jfree.chart.renderer.xy.StandardXYBarPainter
+           org.jfree.data.xy.DefaultXYDataset
            org.jfree.data.statistics.HistogramDataset
-           java.io.File))
-
-(def vertical PlotOrientation/VERTICAL)
-
-(defn set-theme
-  [chart]
-  (let [plot (.getPlot chart)
-        renderer (.getRenderer plot)]
-    (doto plot
-      (.setBackgroundPaint java.awt.Color/white)
-      (.setRangeGridlinePaint (java.awt.Color. 200 100 200))
-      (.setDomainGridlinePaint (java.awt.Color. 200 100 200)))
-    (doto renderer
-      (.setOutlinePaint java.awt.Color/white)
-      (.setPaint java.awt.Color/gray)
-      (.setDrawBarOutline true)
-      (.setBarPainter (StandardXYBarPainter.)))))
+           java.io.File
+           cern.jet.stat.tdouble.Probability))
 
 (defn histogram
   [data & {:as opts}]
@@ -34,9 +21,38 @@
     (.addSeries dataset "data" (double-array data) bins)
     (let [chart (ChartFactory/createHistogram title (:x-lab opts) (:y-lab opts)
                                               dataset
-                                              vertical false false false)]
-      (set-theme chart)
+                                              theme/vertical
+                                              false false false)]
+      (theme/set-theme chart)
       chart)))
+
+(defn scatter-plot
+  [data & {:as opts}]
+  (let [title (or (:title opts) "Scatter Plot")
+        x-lab (or (:x-lab opts) "x")
+        y-lab (or (:y-lab opts) "y")
+        dataset (DefaultXYDataset.)]
+    (.addSeries dataset "Series" (into-array [(double-array (map first data))
+                                              (double-array (map second data))]))
+    (let [chart (ChartFactory/createScatterPlot title x-lab y-lab
+                                                dataset)]
+      (theme/set-theme chart)
+      chart)))
+
+(defn qq-plot
+  [data & {:as opts}]
+  (let [title (or (:title opts) "QQ Plot")
+        x-lab (or (:x-lab opts) "Normal Quantiles")
+        y-lab (or (:y-lab opts) "Data Quantiles")
+        sorted (sort data)
+        n (count data)
+        plot-points (map-indexed (fn [i x]
+                                   [(Probability/normalInverse (/ (inc i) (inc n))) x])
+                                 sorted)]
+    (scatter-plot plot-points
+                  :title title
+                  :x-lab x-lab
+                  :y-lab y-lab)))
 
 (defn view
   [chart & {:as opts}]
