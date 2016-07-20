@@ -58,6 +58,33 @@
                   :x-lab x-lab
                   :y-lab y-lab)))
 
+(defn qq-plot-any
+  [data dist-fn & {:as opts}]
+  (let [title (or (:title opts) "QQ Plot")
+        x-lab (or (:x-lab opts) "Reference Quantiles")
+        y-lab (or (:y-lab opts) "Data Quantiles")
+        sorted (sort data)
+        n (count data)
+        reference-data (sort (repeatedly n dist-fn))
+        plot-points (map vector reference-data sorted)]
+    (scatter-plot plot-points
+                  :title title
+                  :x-lab x-lab
+                  :y-lab y-lab)))
+
+(defn q-plot
+  [data & {:as opts}]
+  (let [title (or (:title opts) "Q Plot")
+        x-lab (or (:x-lab opts) "")
+        y-lab (or (:y-lab opts) "Data Quantiles")
+        sorted (sort data)
+        n (count data)
+        plot-points (map-indexed (fn [i x] [(double (/ i n)) x]) sorted)]
+    (scatter-plot plot-points
+                  :title title
+                  :x-lab x-lab
+                  :y-lab y-lab)))
+
 (defn view
   [chart & {:as opts}]
   (let [window-title (or (:window-title opts) "Plot")
