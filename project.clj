@@ -1,4 +1,4 @@
-(defproject thicken "0.1.0"
+(defproject thicken "0.1.1-SNAPSHOT"
   :description "Basic plotting wrapper library around JFreeChart"
   :url "---"
   :license {:name "Eclipse Public License"
