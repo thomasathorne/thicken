@@ -14,25 +14,19 @@
            cern.jet.stat.tdouble.Probability))
 
 (defn histogram
-  [data & {:as opts}]
-  (let [bins (or (:bins opts) 20)
-        title (or (:title opts) "Histogram")
-        dataset (HistogramDataset.)]
+  [data & [{:keys [bins title x-lab y-lab] :or {bins 20 title "Histogram"}}]]
+  (let [dataset (HistogramDataset.)]
     (.addSeries dataset "data" (double-array data) bins)
-    (let [chart (ChartFactory/createHistogram title (:x-lab opts) (:y-lab opts)
+    (let [chart (ChartFactory/createHistogram title x-lab y-lab
                                               dataset
-                                              theme/vertical
-                                              false false false)]
+                                              theme/vertical false false false)]
       (theme/set-theme chart)
       chart)))
 
 (defn scatter-plot
-  [& args]
-  (let [[data-groups [& {:as opts}]] (split-with (complement keyword?) args)
-        title (or (:title opts) "Scatter Plot")
-        x-lab (or (:x-lab opts) "x")
-        y-lab (or (:y-lab opts) "y")
-        data-labels (or (:data-labels opts) (map str (range (count data-groups))))
+  [data-groups & [{:keys [title x-lab y-lab data-labels]
+                   :or {title "Scatter Plot" x-lab "x" y-lab "y"}}]]
+  (let [data-labels (or data-labels (map str (range (count data-groups))))
         dataset (DefaultXYDataset.)]
     (doseq [i (range (count data-groups))]
       (.addSeries dataset (nth data-labels i)
@@ -43,20 +37,18 @@
       (theme/set-theme chart)
       chart)))
 
+(defn box-and-whisker
+  [& ])
+
 (defn qq-plot
-  [data & {:as opts}]
-  (let [title (or (:title opts) "QQ Plot")
-        x-lab (or (:x-lab opts) "Normal Quantiles")
-        y-lab (or (:y-lab opts) "Data Quantiles")
-        sorted (sort data)
+  [data & [{:keys [title x-lab y-lab]
+            :or {title "QQ Plot" x-lab "Normal Quantiles" y-lab "Data Quantiles"}}]]
+  (let [sorted (sort data)
         n (count data)
         plot-points (map-indexed (fn [i x]
                                    [(Probability/normalInverse (/ (inc i) (inc n))) x])
                                  sorted)]
-    (scatter-plot plot-points
-                  :title title
-                  :x-lab x-lab
-                  :y-lab y-lab)))
+    (scatter-plot [plot-points] {:title title :x-lab x-lab :y-lab y-lab})))
 
 (defn view
   [chart & {:as opts}]
