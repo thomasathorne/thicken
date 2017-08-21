@@ -1,4 +1,4 @@
-(defproject thicken "0.2.0-SNAPSHOT"
+(defproject thicken "0.2.0"
   :description "Basic plotting wrapper library around JFreeChart"
   :url "https://github.com/thomasathorne/thicken"
   :license {:name "Apache License, Version 2.0"
