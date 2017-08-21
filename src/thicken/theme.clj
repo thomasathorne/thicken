@@ -41,3 +41,7 @@
         renderer (.getRenderer plot)]
     (set-theme plot)
     (set-theme renderer)))
+
+(defmethod set-theme org.jfree.chart.renderer.category.BoxAndWhiskerRenderer
+  [renderer]
+  nil)
