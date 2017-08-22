@@ -14,17 +14,19 @@
            cern.jet.stat.tdouble.Probability))
 
 (defn histogram
-  [data & [{:keys [bins title x-lab y-lab] :or {bins 20 title "Histogram"}}]]
+  [data & [{:keys [bins title x-lab y-lab x-range] :or {bins 20 title "Histogram"}}]]
   (let [dataset (HistogramDataset.)]
     (.addSeries dataset "data" (double-array data) bins)
     (let [chart (ChartFactory/createHistogram title x-lab y-lab
                                               dataset
                                               theme/vertical false false false)]
       (theme/set-theme chart)
+      (when x-range
+        (.setRange (.getDomainAxis (.getPlot chart)) (first x-range) (second x-range)))
       chart)))
 
 (defn scatter-plot
-  [data-groups & [{:keys [title x-lab y-lab data-labels]
+  [data-groups & [{:keys [title x-lab y-lab data-labels x-range y-range]
                    :or {title "Scatter Plot" x-lab "x" y-lab "y"}}]]
   (let [data-labels (or data-labels (map str (range (count data-groups))))
         dataset (DefaultXYDataset.)]
@@ -35,6 +37,10 @@
     (let [chart (ChartFactory/createScatterPlot title x-lab y-lab
                                                 dataset)]
       (theme/set-theme chart)
+      (when x-range
+        (.setRange (.getDomainAxis (.getPlot chart)) (first x-range) (second x-range)))
+      (when y-range
+        (.setRange (.getRangeAxis (.getPlot chart)) (first x-range) (second x-range)))
       chart)))
 
 (defn box-and-whisker
