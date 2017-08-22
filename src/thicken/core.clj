@@ -60,7 +60,8 @@
       chart)))
 
 (defn box-and-whisker
-  [categories data-series & [{:keys [title x-lab y-lab] :or {title "Box and Whisker Chart"}}]]
+  [categories data-series & [{:keys [title x-lab y-lab y-range]
+                              :or {title "Box and Whisker Chart"}}]]
   (let [dataset (DefaultBoxAndWhiskerCategoryDataset.)]
     (mapv (fn [[c d] data]
             (let [data-item (BoxAndWhiskerCalculator/calculateBoxAndWhiskerStatistics data)]
@@ -68,6 +69,8 @@
           categories data-series)
     (let [chart (ChartFactory/createBoxAndWhiskerChart title x-lab y-lab dataset true)]
       (theme/set-theme chart)
+      (when y-range
+        (.setRange (.getRangeAxis (.getPlot chart)) (first y-range) (second y-range)))
       chart)))
 
 (defn qq-plot
