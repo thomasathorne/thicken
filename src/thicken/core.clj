@@ -1,3 +1,17 @@
+;;   Copyright (c) Thomas Athorne
+;;
+;;   Licensed under the Apache License, Version 2.0 (the "License");
+;;   you may not use this file except in compliance with the License.
+;;   You may obtain a copy of the License at
+;;
+;;       http://www.apache.org/licenses/LICENSE-2.0
+;;
+;;   Unless required by applicable law or agreed to in writing, software
+;;   distributed under the License is distributed on an "AS IS" BASIS,
+;;   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;;   See the License for the specific language governing permissions and
+;;   limitations under the License.
+
 (ns thicken.core
   (:require [thicken.theme :as theme])
   (:import org.jfree.chart.ChartFrame
@@ -9,6 +23,8 @@
            org.jfree.chart.plot.PlotOrientation
            org.jfree.chart.renderer.xy.StandardXYBarPainter
            org.jfree.data.xy.DefaultXYDataset
+           org.jfree.data.statistics.BoxAndWhiskerCalculator
+           org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset
            org.jfree.data.statistics.HistogramDataset
            java.io.File
            cern.jet.stat.tdouble.Probability))
@@ -44,7 +60,15 @@
       chart)))
 
 (defn box-and-whisker
-  [& ])
+  [categories data-series & [{:keys [title x-lab y-lab] :or {title "Box and Whisker Chart"}}]]
+  (let [dataset (DefaultBoxAndWhiskerCategoryDataset.)]
+    (mapv (fn [[c d] data]
+            (let [data-item (BoxAndWhiskerCalculator/calculateBoxAndWhiskerStatistics data)]
+              (.add dataset data-item d c)))
+          categories data-series)
+    (let [chart (ChartFactory/createBoxAndWhiskerChart title x-lab y-lab dataset true)]
+      (theme/set-theme chart)
+      chart)))
 
 (defn qq-plot
   [data & [{:keys [title x-lab y-lab]
@@ -57,46 +81,30 @@
     (scatter-plot [plot-points] {:title title :x-lab x-lab :y-lab y-lab})))
 
 (defn qq-plot-any
-  [data dist-fn & {:as opts}]
-  (let [title (or (:title opts) "QQ Plot")
-        x-lab (or (:x-lab opts) "Reference Quantiles")
-        y-lab (or (:y-lab opts) "Data Quantiles")
-        sorted (sort data)
+  [data reference & [{:keys [title x-lab y-lab]
+                      :or {title "QQ Plot" x-lab "Reference Quantiles" y-lab "Data Quantiles"}}]]
+  (let [sorted (sort data)
         n (count data)
-        reference-data (sort (repeatedly n dist-fn))
+        reference-data (sort reference)
         plot-points (map vector reference-data sorted)]
-    (scatter-plot plot-points
-                  :title title
-                  :x-lab x-lab
-                  :y-lab y-lab)))
+    (scatter-plot [plot-points] {:title title :x-lab x-lab :y-lab y-lab})))
 
 (defn q-plot
-  [data & {:as opts}]
-  (let [title (or (:title opts) "Q Plot")
-        x-lab (or (:x-lab opts) "")
-        y-lab (or (:y-lab opts) "Data Quantiles")
-        sorted (sort data)
+  [data & [{:keys [title x-lab y-lab]
+            :or {title "Q Plot" x-lab "" y-lab "Data Quantiles"}}]]
+  (let [sorted (sort data)
         n (count data)
         plot-points (map-indexed (fn [i x] [(double (/ i n)) x]) sorted)]
-    (scatter-plot plot-points
-                  :title title
-                  :x-lab x-lab
-                  :y-lab y-lab)))
+    (scatter-plot [plot-points] {:title title :x-lab x-lab :y-lab y-lab})))
 
 (defn view
-  [chart & {:as opts}]
-  (let [window-title (or (:window-title opts) "Plot")
-        width (or (:width opts) 500)
-        height (or (:height opts) 400)
-        frame (ChartFrame. window-title chart)]
+  [chart & [{:keys [window-title width height] :or {window-title "Plot" width 500 height 400}}]]
+  (let [frame (ChartFrame. window-title chart)]
     (doto frame
       (.setSize width height)
       (.setVisible true))
     frame))
 
 (defn save
-  [chart filename & {:as opts}]
-  (let [width (or (:width opts) 1000)
-        height (or (:height opts) 800)]
-    (ChartUtilities/saveChartAsPNG (File. filename) chart width height)
-    nil))
+  [chart filename & [{:keys [width height] :or {width 1000 height 800}}]]
+  (ChartUtilities/saveChartAsPNG (File. filename) chart width height))
