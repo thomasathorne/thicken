@@ -56,7 +56,7 @@
       (when x-range
         (.setRange (.getDomainAxis (.getPlot chart)) (first x-range) (second x-range)))
       (when y-range
-        (.setRange (.getRangeAxis (.getPlot chart)) (first x-range) (second x-range)))
+        (.setRange (.getRangeAxis (.getPlot chart)) (first y-range) (second y-range)))
       chart)))
 
 (defn box-and-whisker
